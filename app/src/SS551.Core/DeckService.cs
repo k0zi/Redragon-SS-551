@@ -23,6 +23,10 @@ public sealed class DeckService : IDisposable
     private volatile DeckDevice? _device;
     private int _page;
 
+    // Not saved: the deck always starts lit, but an off backlight survives a reconnect.
+    private readonly Lock _backlightLock = new();
+    private volatile bool _backlightOn = true;
+
     // On/off state of indicator keys, by (page, key).
     private readonly ConcurrentDictionary<(int Page, int Key), bool> _states = new();
     private readonly SemaphoreSlim _pollSignal = new(0);
@@ -44,10 +48,13 @@ public sealed class DeckService : IDisposable
 
     public int CurrentPage => Volatile.Read(ref _page);
 
+    public bool IsBacklightOn => _backlightOn;
+
     public event Action<bool>? ConnectionChanged;
     public event Action<DeckInput>? InputReceived;
     public event Action<int>? PageChanged;
     public event Action<int>? BrightnessChanged;
+    public event Action<bool>? BacklightChanged;
     public event Action<string>? Log;
 
     /// <summary>(page, key, on): an indicator key changed state.</summary>
@@ -162,6 +169,7 @@ public sealed class DeckService : IDisposable
         RequestStatePoll();
     }
 
+    /// <summary>Sets the brightness; changing it while the backlight is off turns it back on.</summary>
     public void SetBrightness(int percent)
     {
         percent = Math.Clamp(percent, 0, 100);
@@ -170,6 +178,33 @@ public sealed class DeckService : IDisposable
         Profile.Brightness = percent;
         Try(d => d.SetBrightness(percent));
         BrightnessChanged?.Invoke(percent);
+        SetBacklight(true);
+    }
+
+    /// <summary>Turns the LCD backlight off (blank keys) or back on; input keeps working either way.</summary>
+    public void SetBacklight(bool on)
+    {
+        lock (_backlightLock)
+        {
+            if (_backlightOn == on)
+                return;
+            _backlightOn = on;
+            Try(d => ApplyBacklight(d, on));
+        }
+        BacklightChanged?.Invoke(on);
+    }
+
+    private void ApplyBacklight(DeckDevice device, bool on)
+    {
+        if (!on)
+        {
+            device.ScreenOff();
+            return;
+        }
+        // Restore what the panel showed before it went dark.
+        device.WakeScreen();
+        device.SetBrightness(Profile.Brightness);
+        PushKeys(device);
     }
 
     /// <summary>Re-renders all keys of the current page (call after editing them).</summary>
@@ -227,7 +262,12 @@ public sealed class DeckService : IDisposable
                 device.SetBrightness(Profile.Brightness);
                 device.Clear();
                 PushKeys(device);
-                _device = device;
+                lock (_backlightLock)
+                {
+                    if (!_backlightOn)
+                        device.ScreenOff();
+                    _device = device;
+                }
                 Log?.Invoke($"Connected: {device.Firmware} (serial {device.Serial})");
                 ConnectionChanged?.Invoke(true);
 
@@ -429,6 +469,14 @@ public sealed class DeckService : IDisposable
                 break;
             case ActionType.Brightness:
                 SetBrightness(Profile.Brightness + step.BrightnessStep);
+                break;
+            case ActionType.Backlight:
+                SetBacklight(step.Backlight switch
+                {
+                    BacklightAction.Off => false,
+                    BacklightAction.On => true,
+                    _ => !IsBacklightOn,
+                });
                 break;
             default:
                 _runner.Run(step);

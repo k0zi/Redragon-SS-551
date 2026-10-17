@@ -80,6 +80,12 @@ dotnet publish "$ROOT/app/src/SS551.App/SS551.App.csproj" \
 find "$STAGE/app" -name '*.pdb' -delete
 cp driver/build/ss551-probe "$STAGE/app/"
 sed "s|@BIN@|/usr/bin/ss551|" "$ROOT/packaging/ss551.desktop" > "$STAGE/ss551.desktop"
+# Autostart on login, hidden in the tray. TryExec keeps a leftover entry inert once the app is gone.
+{
+    sed "s|@BIN@|/usr/bin/ss551 --hidden|" "$ROOT/packaging/ss551.desktop"
+    echo "TryExec=/usr/bin/ss551"
+    echo "X-GNOME-Autostart-enabled=true"
+} > "$STAGE/ss551-autostart.desktop"
 # A umask of 002 would otherwise ship group-writable files.
 chmod -R go-w "$STAGE"
 

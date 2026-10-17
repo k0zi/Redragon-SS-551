@@ -62,6 +62,7 @@ public sealed partial class MainViewModel : ViewModelBase
             OnPropertyChanged(nameof(Brightness));
             ScheduleSave();
         });
+        _service.BacklightChanged += on => Dispatcher.UIThread.Post(() => OnPropertyChanged(nameof(IsBacklightOn)));
         _service.InputReceived += i => Dispatcher.UIThread.Post(() => OnInput(i));
         _service.KeyStateChanged += (page, key, on) => Dispatcher.UIThread.Post(() =>
         {
@@ -104,6 +105,19 @@ public sealed partial class MainViewModel : ViewModelBase
                 return;
             _service.SetBrightness(value);
             ScheduleSave();
+        }
+    }
+
+    /// <summary>Deck LCD backlight; not saved, the deck starts lit.</summary>
+    public bool IsBacklightOn
+    {
+        get => _service.IsBacklightOn;
+        set
+        {
+            if (value == _service.IsBacklightOn)
+                return;
+            // Device I/O (re-uploading the key images) off the UI thread.
+            Task.Run(() => _service.SetBacklight(value));
         }
     }
 

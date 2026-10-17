@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using SS551.App.ViewModels;
 using SS551.App.Views;
 using SS551.Core;
@@ -37,6 +38,8 @@ public partial class App : Application
             };
 
             SetupTray(desktop);
+            if (Program.Instance is { } instance)
+                instance.ShowRequested += () => Dispatcher.UIThread.Post(ShowWindow);
             desktop.Exit += (_, _) => Shutdown();
 
             if (!(desktop.Args ?? []).Contains("--hidden"))
@@ -51,6 +54,17 @@ public partial class App : Application
     {
         var show = new NativeMenuItem("Show");
         show.Click += (_, _) => ShowWindow();
+        var backlight = new NativeMenuItem("Deck backlight")
+        {
+            ToggleType = MenuItemToggleType.CheckBox,
+            IsChecked = _service!.IsBacklightOn,
+        };
+        backlight.Click += (_, _) =>
+        {
+            var on = !_service.IsBacklightOn;
+            Task.Run(() => _service.SetBacklight(on));
+        };
+        _service.BacklightChanged += on => Dispatcher.UIThread.Post(() => backlight.IsChecked = on);
         var quit = new NativeMenuItem("Quit");
         quit.Click += (_, _) =>
         {
@@ -62,7 +76,7 @@ public partial class App : Application
         {
             Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://ss551/Assets/icon.png"))),
             ToolTipText = "Redragon SS-551",
-            Menu = new NativeMenu { Items = { show, new NativeMenuItemSeparator(), quit } },
+            Menu = new NativeMenu { Items = { show, backlight, new NativeMenuItemSeparator(), quit } },
         };
         tray.Clicked += (_, _) => ShowWindow();
         TrayIcon.SetIcons(this, [tray]);

@@ -4,6 +4,7 @@
 #   /usr/lib/ss551/   application
 #   /usr/bin/ss551    launcher (and /usr/bin/ss551-probe)
 #   /usr/lib/udev/rules.d/70-redragon-ss551.rules  device access for the logged-in user
+#   /etc/xdg/autostart/ss551.desktop               starts the app in the tray on login
 # Usage: packaging/install.sh [--no-build] | --uninstall
 set -euo pipefail
 

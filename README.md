@@ -16,14 +16,17 @@ user space.
 
 ## Features
 
-- Images on the 6 LCD keys, multiple pages, deck brightness
+- Images on the 6 LCD keys, multiple pages
+- Deck brightness and backlight on/off from the window, the tray menu or any
+  key / button / knob
 - Actions for every key, button, knob push and knob turn (per direction)
 - Macros: a list of steps (hotkeys, media keys, shell commands, apps, URLs,
   page switching, brightness, delays)
 - Multi-stage long press
 - State indicator keys (toggle, speaker / mic mute, custom command)
 - Pick an installed application: its icon and name go on the key
-- Tray icon, can start hidden
+- Tray icon, starts hidden in the tray on login (package install)
+- Single instance: launching it again only shows the running app's window
 - Light / dark themes (Redragon red by default, plus Linux distro inspired
   ones) via [KD.Avalonia.Rice](https://www.nuget.org/packages/KD.Avalonia.Rice)
 
@@ -61,9 +64,10 @@ packaging/install.sh --uninstall   # removes it again
 ```
 
 The package puts the app in `/usr/lib/ss551`, the `ss551` and `ss551-probe`
-commands in `/usr/bin`, a menu entry, and the udev rule in
-`/usr/lib/udev/rules.d/` (no manual udev setup needed; re-plug the deck once
-after the first install). It is self-contained: no .NET runtime is needed on
+commands in `/usr/bin`, a menu entry, an autostart entry
+(`/etc/xdg/autostart/ss551.desktop`, starts the app hidden in the tray on
+login) and the udev rule in `/usr/lib/udev/rules.d/` (no manual udev setup
+needed; re-plug the deck once after the first install). It is self-contained: no .NET runtime is needed on
 the target machine. Tested on Ubuntu 24.04, Debian 13, Fedora, openSUSE
 Tumbleweed and Leap 15.6 (x86_64 only).
 
@@ -95,17 +99,12 @@ skips it). Builds outside `main` and `v*` tags get a `~g<commit>` suffix,
 which sorts before the release of the same version. Show the current
 version with `dotnet tool restore && dotnet nbgv get-version`.
 
-To start the app hidden in the tray on login:
+The app starts on the next login; until then, start it from the menu. To
+turn autostart off for your user (overrides the system-wide entry):
 
 ```sh
 mkdir -p ~/.config/autostart
-cat > ~/.config/autostart/ss551.desktop <<EOF
-[Desktop Entry]
-Type=Application
-Name=Redragon SS-551
-Exec=/usr/bin/ss551 --hidden
-X-GNOME-Autostart-enabled=true
-EOF
+printf '[Desktop Entry]\nHidden=true\n' > ~/.config/autostart/ss551.desktop
 ```
 
 ## Run from source
@@ -169,7 +168,13 @@ list of steps run in order.
 | Open | URL, file or folder (`xdg-open`) |
 | Page | next / previous / go to page N |
 | Brightness | change deck brightness by N % |
+| Backlight | turn the deck's backlight off, on, or toggle it |
 | Delay | wait N ms before the next step |
+
+With the backlight off the keys, buttons and knobs keep working, so e.g. a
+button with a **Backlight → Toggle** step turns the deck dark and back on.
+Changing the brightness turns the backlight back on. The deck always starts
+lit when the app starts.
 
 **Choose application…** in the key editor takes an installed app's icon
 (PNG or SVG, resolved through the current icon theme) and name, and makes

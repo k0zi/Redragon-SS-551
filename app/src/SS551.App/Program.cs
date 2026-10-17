@@ -4,6 +4,7 @@ using KD.Avalonia.Rice;
 using KD.Avalonia.Rice.Options;
 using KD.Avalonia.Rice.Theming;
 using System;
+using System.Linq;
 
 namespace SS551.App;
 
@@ -17,9 +18,19 @@ sealed class Program
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
+    /// <summary>Set while this process is the running instance.</summary>
+    public static SingleInstance? Instance { get; private set; }
+
     [STAThread]
-    public static void Main(string[] args) => BuildAvaloniaApp()
-        .StartWithClassicDesktopLifetime(args);
+    public static void Main(string[] args)
+    {
+        // A second launch only brings the running instance's window to the front.
+        using var instance = SingleInstance.TryAcquire(show: !args.Contains("--hidden"));
+        if (instance is null)
+            return;
+        Instance = instance;
+        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+    }
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()

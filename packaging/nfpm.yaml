@@ -33,9 +33,12 @@ contents:
     type: symlink
   - src: udev/70-redragon-ss551.rules
     dst: /usr/lib/udev/rules.d/70-redragon-ss551.rules
-  # ── menu entry + icon ──
+  # ── menu entry, autostart + icon ──
   - src: artifacts/stage/ss551.desktop
     dst: /usr/share/applications/ss551.desktop
+  # Every user starts the app on login; a user turns it off with ~/.config/autostart/ss551.desktop (Hidden=true).
+  - src: artifacts/stage/ss551-autostart.desktop
+    dst: /etc/xdg/autostart/ss551.desktop
   - src: app/src/SS551.App/Assets/icon.png
     dst: /usr/share/icons/hicolor/256x256/apps/ss551.png
   # ── licence: Debian policy location vs. RPM %license ──

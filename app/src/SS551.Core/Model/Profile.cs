@@ -11,6 +11,7 @@ public enum ActionType
     Brightness,
     Delay,
     App,
+    Backlight,
 }
 
 public enum MediaAction
@@ -37,6 +38,14 @@ public enum StateSource
     MicMuted,
     /// <summary>A shell command is polled; exit code 0 means on.</summary>
     Command,
+}
+
+/// <summary>Deck screen backlight: off blanks the LCD keys, the controls keep working.</summary>
+public enum BacklightAction
+{
+    Toggle,
+    Off,
+    On,
 }
 
 public enum PageAction
@@ -69,6 +78,8 @@ public sealed class DeckAction
 
     /// <summary>Brightness: change in percent, e.g. +10 or -10.</summary>
     public int BrightnessStep { get; set; } = 10;
+
+    public BacklightAction Backlight { get; set; }
 
     /// <summary>Delay: wait before the next step, in milliseconds.</summary>
     public int DelayMs { get; set; } = 500;

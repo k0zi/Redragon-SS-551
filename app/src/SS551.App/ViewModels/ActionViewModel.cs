@@ -11,6 +11,7 @@ public sealed class ActionViewModel(DeckAction model, Action changed) : ViewMode
     public static ActionType[] ActionTypes { get; } = Enum.GetValues<ActionType>();
     public static MediaAction[] MediaActions { get; } = Enum.GetValues<MediaAction>();
     public static PageAction[] PageActions { get; } = Enum.GetValues<PageAction>();
+    public static BacklightAction[] BacklightActions { get; } = Enum.GetValues<BacklightAction>();
 
     public ActionType Type
     {
@@ -27,6 +28,7 @@ public sealed class ActionViewModel(DeckAction model, Action changed) : ViewMode
                 OnPropertyChanged(nameof(IsBrightness));
                 OnPropertyChanged(nameof(IsDelay));
                 OnPropertyChanged(nameof(IsApp));
+                OnPropertyChanged(nameof(IsBacklight));
                 OnPropertyChanged(nameof(Summary));
             }
         }
@@ -40,6 +42,7 @@ public sealed class ActionViewModel(DeckAction model, Action changed) : ViewMode
     public bool IsBrightness => Type == ActionType.Brightness;
     public bool IsDelay => Type == ActionType.Delay;
     public bool IsApp => Type == ActionType.App;
+    public bool IsBacklight => Type == ActionType.Backlight;
 
     public string AppName => string.IsNullOrEmpty(model.AppName) ? "No application chosen" : model.AppName;
 
@@ -139,6 +142,16 @@ public sealed class ActionViewModel(DeckAction model, Action changed) : ViewMode
         }
     }
 
+    public BacklightAction Backlight
+    {
+        get => model.Backlight;
+        set
+        {
+            if (Set(model.Backlight, value, v => model.Backlight = v))
+                OnPropertyChanged(nameof(Summary));
+        }
+    }
+
     public decimal DelayMs
     {
         get => model.DelayMs;
@@ -164,6 +177,12 @@ public sealed class ActionViewModel(DeckAction model, Action changed) : ViewMode
         ActionType.Brightness => $"Brightness {BrightnessStep:+0;-0}%",
         ActionType.Delay => $"Wait {DelayMs} ms",
         ActionType.App => string.IsNullOrEmpty(model.AppName) ? "App" : model.AppName,
+        ActionType.Backlight => Backlight switch
+        {
+            BacklightAction.Off => "Backlight off",
+            BacklightAction.On => "Backlight on",
+            _ => "Backlight on/off",
+        },
         _ => Type.ToString(),
     };
 

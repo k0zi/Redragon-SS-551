@@ -128,6 +128,10 @@
                                    Increment="5" FormatString="0" MinWidth="120" />
                 </StackPanel>
 
+                <ComboBox IsVisible="{Binding IsBacklight}" HorizontalAlignment="Stretch"
+                          ItemsSource="{x:Static vm:ActionViewModel.BacklightActions}"
+                          SelectedItem="{Binding Backlight}" />
+
                 <Grid IsVisible="{Binding IsApp}" ColumnDefinitions="*,Auto">
                     <TextBlock Text="{Binding AppName}" VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis" />
@@ -341,7 +345,7 @@
         </DataTemplate>
     </Window.DataTemplates>
 
-    <!-- Title bar: connection status and deck brightness. -->
+    <!-- Title bar: connection status, deck backlight and brightness. -->
     <rice:RiceWindow.TitleBarContent>
         <StackPanel Orientation="Horizontal" Spacing="24" HorizontalAlignment="Right" Margin="0,0,16,0">
             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -350,6 +354,14 @@
                 <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="8">
+                <ToggleButton Padding="5" IsChecked="{Binding IsBacklightOn}" VerticalAlignment="Center"
+                              ToolTip.Tip="Deck backlight on / off">
+                    <Panel>
+                        <icons:MaterialIcon Kind="Monitor" Width="18" Height="18" IsVisible="{Binding IsBacklightOn}" />
+                        <icons:MaterialIcon Kind="MonitorOff" Width="18" Height="18"
+                                            IsVisible="{Binding !IsBacklightOn}" />
+                    </Panel>
+                </ToggleButton>
                 <icons:MaterialIcon Kind="Brightness6" Width="18" Height="18" VerticalAlignment="Center"
                                     ToolTip.Tip="Brightness" />
                 <Slider Width="140" Minimum="0" Maximum="100" TickFrequency="5" VerticalAlignment="Center"
