@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Redragon SS-551
+Comment=Configure the Redragon SS-551 stream deck
+Exec=@BIN@
+Icon=ss551
+Terminal=false
+Categories=Utility;Settings;HardwareSettings;
+Keywords=stream deck;Redragon;Mirabox;
+StartupWMClass=ss551

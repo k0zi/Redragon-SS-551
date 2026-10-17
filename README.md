@@ -34,21 +34,72 @@ user space.
 | `driver/` | `libss551`, a small C library on top of hidapi, plus `ss551-probe`, a command-line test tool |
 | `app/` | C# / Avalonia desktop app (`SS551.App` UI, `SS551.Core` logic, `SS551.Native` P/Invoke bindings) |
 | `udev/` | rule granting the logged-in user access to the device |
+| `packaging/` | `.deb` / `.rpm` build (nfpm) and `install.sh` |
 | `docs/protocol.md` | the reverse-engineered USB protocol |
 
 ## Requirements
 
 - Linux with hidraw and uinput (tested on Ubuntu)
-- `cmake gcc pkg-config libhidapi-dev` (Ubuntu/Debian package names)
+- `cmake gcc pkg-config` and the hidapi headers
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - Optional: `wpctl` (PipeWire) for the mute indicator keys, `gio` and
   `xdg-open` for the App / Open actions
 
 ```sh
-sudo apt install cmake gcc pkg-config libhidapi-dev
+sudo apt install cmake gcc pkg-config libhidapi-dev            # Debian / Ubuntu
+sudo dnf install cmake gcc pkgconf hidapi-devel                # Fedora
+sudo zypper install cmake gcc pkg-config libhidapi-devel       # openSUSE
 ```
 
-## Setup
+## Install (deb / rpm package)
+
+```sh
+git clone https://github.com/k0zi/Redragon-SS-551.git
+cd Redragon-SS-551
+packaging/install.sh               # builds the package and installs it with apt / dnf / zypper
+packaging/install.sh --uninstall   # removes it again
+```
+
+The package puts the app in `/usr/lib/ss551`, the `ss551` and `ss551-probe`
+commands in `/usr/bin`, a menu entry, and the udev rule in
+`/usr/lib/udev/rules.d/` (no manual udev setup needed; re-plug the deck once
+after the first install). It is self-contained: no .NET runtime is needed on
+the target machine. Tested on Ubuntu 24.04, Debian 13, Fedora, openSUSE
+Tumbleweed and Leap 15.6 (x86_64 only).
+
+To build the packages without installing them:
+
+```sh
+packaging/build-packages.sh             # .deb and .rpm into artifacts/packages/
+packaging/build-packages.sh deb         # only one format
+```
+
+The packages require at least the glibc of the machine they were built on
+(the build script reads this from the compiled driver), so build on the
+oldest distribution you want to support.
+
+**Versioning:** [Nerdbank.GitVersioning](https://github.com/dotnet/Nerdbank.GitVersioning),
+`<year>.<month>.<git height>` (e.g. `26.10.3`). `version.json` holds the
+year and month; when the month changes, `build-packages.sh` updates it
+(commit that change so the patch number restarts from there; `--no-bump`
+skips it). Builds outside `main` and `v*` tags get a `~g<commit>` suffix,
+which sorts before the release of the same version. Show the current
+version with `dotnet tool restore && dotnet nbgv get-version`.
+
+To start the app hidden in the tray on login:
+
+```sh
+mkdir -p ~/.config/autostart
+cat > ~/.config/autostart/ss551.desktop <<EOF
+[Desktop Entry]
+Type=Application
+Name=Redragon SS-551
+Exec=/usr/bin/ss551 --hidden
+X-GNOME-Autostart-enabled=true
+EOF
+```
+
+## Run from source
 
 ```sh
 git clone https://github.com/k0zi/Redragon-SS-551.git
@@ -63,7 +114,7 @@ Hotkeys and media keys are sent through a virtual uinput keyboard, so the
 user needs write access to `/dev/uinput` (granted by default on Ubuntu
 desktop sessions; check with `test -w /dev/uinput && echo ok`).
 
-## Build and run
+### Build and run
 
 ```sh
 cmake -S driver -B driver/build -DCMAKE_BUILD_TYPE=Release
@@ -76,22 +127,10 @@ dotnet run --project app/src/SS551.App -- --hidden   # start in the tray
 The app copies `driver/build/libss551.so*` next to its binaries, so build
 the driver first. The profile is stored in `~/.config/ss551/profile.json`.
 
-### Install and start on login
-
-```sh
-dotnet publish app/src/SS551.App -c Release -o ~/.local/share/ss551
-
-mkdir -p ~/.config/autostart
-cat > ~/.config/autostart/ss551.desktop <<EOF
-[Desktop Entry]
-Type=Application
-Name=Redragon SS-551
-Exec=$HOME/.local/share/ss551/ss551 --hidden
-X-GNOME-Autostart-enabled=true
-EOF
-```
-
 ## Probe tool
+
+Installed as `ss551-probe` by the package; from a source build it is
+`driver/build/ss551-probe`.
 
 ```sh
 driver/build/ss551-probe info

@@ -12,3 +12,6 @@ obj/
 
 # Photos taken during reverse engineering
 /buttons*.png
+
+# Packaging output
+artifacts/
