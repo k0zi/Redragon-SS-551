@@ -1,0 +1,82 @@
+# Builds the .deb and .rpm packages and attaches them to the GitHub release.
+# Manual runs (Actions tab -> "Run workflow") only keep the packages as a workflow artifact.
+name: Packages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # The packages need at least the glibc they were built against (see packaging/build-packages.sh),
+    # so build on the oldest supported distribution rather than on the runner image.
+    container: ubuntu:22.04
+    steps:
+      - name: Install build requirements
+        run: |
+          apt-get update -qq
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
+            git ca-certificates curl cmake make gcc libc6-dev pkg-config libhidapi-dev binutils
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Nerdbank.GitVersioning needs the history for the git height
+
+      - name: Trust the workspace
+        # The checkout belongs to the runner user, not to the container's root.
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build packages
+        # --no-bump: the version comes from the committed version.json.
+        run: packaging/build-packages.sh --no-bump
+
+      - name: Check version against the release tag
+        if: github.event_name == 'release'
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version="$(dotnet nbgv get-version -v SimpleVersion)"
+          if [ "${TAG#v}" != "$version" ]; then
+            echo "::warning::Release tag $TAG does not match the package version $version"
+          fi
+
+      - name: Smoke test the .deb
+        run: |
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
+            "$PWD"/artifacts/packages/ss551_*.deb
+          ss551-probe info || true
+          test -x /usr/lib/ss551/ss551
+          test -f /usr/lib/udev/rules.d/70-redragon-ss551.rules
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: packages
+          path: artifacts/packages/
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: packages
+          path: packages
+
+      - name: Upload to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" packages/* --clobber --repo "$GITHUB_REPOSITORY"

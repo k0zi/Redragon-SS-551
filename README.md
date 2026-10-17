@@ -78,6 +78,15 @@ The packages require at least the glibc of the machine they were built on
 (the build script reads this from the compiled driver), so build on the
 oldest distribution you want to support.
 
+**Releases:** publishing a GitHub release runs the
+[`Packages`](.github/workflows/packages.yml) workflow, which builds both
+packages in an Ubuntu 22.04 container (glibc 2.34+), smoke-tests the
+`.deb` and attaches both files to the release. Name the tag after the
+version it builds (`dotnet nbgv get-version -v SimpleVersion` on the tagged
+commit, e.g. `v26.10.3`); the workflow warns if they differ. It can also be
+started by hand from the Actions tab, then the packages are only kept as a
+workflow artifact.
+
 **Versioning:** [Nerdbank.GitVersioning](https://github.com/dotnet/Nerdbank.GitVersioning),
 `<year>.<month>.<git height>` (e.g. `26.10.3`). `version.json` holds the
 year and month; when the month changes, `build-packages.sh` updates it
