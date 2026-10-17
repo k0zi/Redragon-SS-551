@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../SS551.Native/SS551.Native.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Same version Avalonia.Skia 12.1 uses. -->
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="3.119.4" />
+    <!-- SVG icons (app icon themes); 5.1.x is the last line built on SkiaSharp 3.119. -->
+    <PackageReference Include="Svg.Skia" Version="5.1.1" />
+  </ItemGroup>
+
+</Project>

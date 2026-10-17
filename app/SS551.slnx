@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SS551.App/SS551.App.csproj" />
+    <Project Path="src/SS551.Core/SS551.Core.csproj" />
+    <Project Path="src/SS551.Native/SS551.Native.csproj" />
+  </Folder>
+</Solution>

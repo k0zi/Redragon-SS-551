@@ -1,0 +1,14 @@
+# Vendor installer: proprietary, do not commit
+*.exe
+*.msi
+*.cab
+
+build/
+bin/
+obj/
+*.user
+.vs/
+.idea/
+
+# Photos taken during reverse engineering
+/buttons*.png

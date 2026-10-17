@@ -1,0 +1,4 @@
+# Redragon SS-551 stream deck (Mirabox Stream Dock, USB 0200:2000)
+# Grants the logged-in user access to the vendor HID interface.
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0200", ATTRS{idProduct}=="2000", MODE="0660", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0200", ATTRS{idProduct}=="2000", MODE="0660", TAG+="uaccess"

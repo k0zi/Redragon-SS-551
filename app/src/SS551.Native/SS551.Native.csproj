@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <!-- Ship the C driver next to the managed assemblies (build it first with CMake). -->
+  <PropertyGroup>
+    <SS551NativeDir>$(MSBuildThisFileDirectory)../../../driver/build/</SS551NativeDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(SS551NativeDir)libss551.so*" Condition="Exists('$(SS551NativeDir)libss551.so')"
+          Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
+</Project>
