@@ -33,6 +33,8 @@ contents:
     type: symlink
   - src: udev/70-redragon-ss551.rules
     dst: /usr/lib/udev/rules.d/70-redragon-ss551.rules
+    file_info:
+      mode: 0644
   # ── menu entry, autostart + icon ──
   - src: artifacts/stage/ss551.desktop
     dst: /usr/share/applications/ss551.desktop
@@ -41,12 +43,18 @@ contents:
     dst: /etc/xdg/autostart/ss551.desktop
   - src: app/src/SS551.App/Assets/icon.png
     dst: /usr/share/icons/hicolor/256x256/apps/ss551.png
+    file_info:
+      mode: 0644
   # ── licence: Debian policy location vs. RPM %license ──
   - src: LICENSE
     dst: /usr/share/doc/ss551/copyright
+    file_info:
+      mode: 0644
     packager: deb
   - src: LICENSE
     dst: /usr/share/licenses/ss551/LICENSE
+    file_info:
+      mode: 0644
     packager: rpm
     type: license
 
