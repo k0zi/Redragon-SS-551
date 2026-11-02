@@ -86,8 +86,9 @@ sed "s|@BIN@|/usr/bin/ss551|" "$ROOT/packaging/ss551.desktop" > "$STAGE/ss551.de
     echo "TryExec=/usr/bin/ss551"
     echo "X-GNOME-Autostart-enabled=true"
 } > "$STAGE/ss551-autostart.desktop"
-# A umask of 002 would otherwise ship group-writable files.
-chmod -R go-w "$STAGE"
+# A umask of 002 would otherwise ship group-writable files; the .NET runtime pack ships its
+# libraries and createdump as 0744, so make everything readable (and executables runnable) by all.
+chmod -R go-w,a+rX "$STAGE"
 
 # Lowest glibc the package runs on: the newest GLIBC_x.y symbol version any bundled binary needs.
 # The .NET runtime needs 2.27; the driver needs whatever the build host's headers redirect to.
