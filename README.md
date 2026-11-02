@@ -82,14 +82,23 @@ The packages require at least the glibc of the machine they were built on
 (the build script reads this from the compiled driver), so build on the
 oldest distribution you want to support.
 
-**Releases:** publishing a GitHub release runs the
-[`Packages`](.github/workflows/packages.yml) workflow, which builds both
-packages in an Ubuntu 22.04 container (glibc 2.34+), smoke-tests the
-`.deb` and attaches both files to the release. Name the tag after the
-version it builds (`dotnet nbgv get-version -v SimpleVersion` on the tagged
-commit, e.g. `v26.10.3`); the workflow warns if they differ. It can also be
-started by hand from the Actions tab, then the packages are only kept as a
-workflow artifact.
+**CI and releases:** the [`Build and publish`](.github/workflows/build_n_publish.yml)
+workflow runs on every push to `main` and every pull request: it builds both
+packages in an Ubuntu 22.04 container (glibc 2.34+), smoke-tests the `.deb`
+and uploads the packages as a workflow artifact. A GitHub release
+`v<version>` with the `.deb` and `.rpm` attached is created by any of:
+
+- **Tag push:** `dotnet nbgv tag` (tags HEAD as `v<its version>`), then
+  `git push origin v<version>`.
+- **github.com:** *Releases → Draft a new release*, new tag `v<version>` on
+  `main`. The workflow only attaches the packages to that release.
+- **Manual run:** *Actions → Build and publish → Run workflow* with
+  `publish` ticked; it tags the built commit `v<version>` and creates the
+  release.
+
+The tag must match the version computed for that commit, so let
+`dotnet nbgv tag` pick it instead of typing a number; the workflow warns on
+a mismatch.
 
 **Versioning:** [Nerdbank.GitVersioning](https://github.com/dotnet/Nerdbank.GitVersioning),
 `<year>.<month>.<git height>` (e.g. `26.10.3`). `version.json` holds the
